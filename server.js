@@ -22,9 +22,8 @@ const PlantSchema = new mongoose.Schema ({
   plantName: {
     type: String,
     required: true,
-    //lowercase: true
   },
-  typeOfPlant: {
+  plantType: {
     type: String
   },
   indoorOrOutdoor: {
@@ -33,7 +32,7 @@ const PlantSchema = new mongoose.Schema ({
   image: {
     type: String
   },
-  information: {
+  plantInformation: {
     type: String
   },
   createdAt: {
@@ -41,8 +40,6 @@ const PlantSchema = new mongoose.Schema ({
     default: Date.now
   }
 })
-
-//name: { $toLower: "$name" },
 
 const UserSchema = new mongoose.Schema ({
   username: {
@@ -65,7 +62,6 @@ const UserSchema = new mongoose.Schema ({
 })
 
 const Plant = mongoose.model('Plant', PlantSchema);
-
 const User = mongoose.model('User', UserSchema);
 
 app.get('/plants', async (req, res) => {
@@ -114,43 +110,19 @@ app.delete("/plant/:plantId", async (req, res) => {
   }
 });
 
-// app.patch('/users/:userId/settings', authenticateUser, async (req, res) => {
-//   const { userId } = req.params
-//   const { workMinutes, shortBreakMinutes, longBreakMinutes } = req.body
-
-//   try {
-//     const queriedUser = await User.findOneAndUpdate(
-//       { _id: userId },
-//       { workMinutes, shortBreakMinutes, longBreakMinutes },
-//       { new: true }
-//     )
-
-
-//     if (!queriedUser) {
-//       res.status(404).json({ response: 'No user found with this Id', success: false})
-//     } else {
-//       res.status(200).json({ response: {workMinutes, shortBreakMinutes, longBreakMinutes}, success: true})
-//     }
-//   } catch (error) {
-//     res.status(400).json({ response: error, success: false })
-//   }
-// })
-
-
-
 app.patch("/plant/:plantId/updated", async (req, res) => {
   const { plantId } = req.params;
-  const { plantName,typeOfPlant, indoorOrOutdoor, information } = req.body;
+  const { plantName, plantType, indoorOrOutdoor, plantInformation } = req.body;
   console.log(req.params)
 
   try {
-    const PlantToUpdate = await Plant.findByIdAndUpdate({_id: plantId}, {plantName,typeOfPlant, indoorOrOutdoor, information});
+    const PlantToUpdate = await Plant.findByIdAndUpdate({_id: plantId}, {plantName, plantType, indoorOrOutdoor, plantInformation});
     console.log(PlantToUpdate)
     console.log(plantId)
     //console.log(updatedPlant)
     if(PlantToUpdate) {
       res.status(200).json
-        ({ response: {plantName, typeOfPlant, information, indoorOrOutdoor}, success: true});
+        ({ response: {plantName, plantType, plantInformation, indoorOrOutdoor}, success: true});
     } else {
       res.status(404).json({
         success: false,
@@ -166,14 +138,10 @@ app.patch("/plant/:plantId/updated", async (req, res) => {
   }
 });
 
-
-
-
-
 app.post('/plants', async (req, res) => {
-  const { plantName, typeOfPlant, indoorOrOutdoor, image, information, date } = req.body;
+  const { plantName, plantType, indoorOrOutdoor, image, plantInformation, date } = req.body;
   try {
-    const newPlant = new Plant({plantName, typeOfPlant, indoorOrOutdoor, image, information, date});
+    const newPlant = new Plant({plantName, plantType, indoorOrOutdoor, image, plantInformation, date});
       await newPlant.save();
       res.status(201).json({
         response: newPlant,
@@ -189,9 +157,6 @@ app.post('/plants', async (req, res) => {
       })
     }
 });
-
-
-
 
 // Start defining your routes here
 app.get("/", (req, res) => {
