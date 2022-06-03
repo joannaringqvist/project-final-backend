@@ -1,10 +1,10 @@
-import express from "express";
-import cors from "cors";
-import mongoose from "mongoose";
-import crypto from "crypto";
-import bcrypt from "bcrypt";
+import express from 'express';
+import cors from 'cors';
+import mongoose from 'mongoose';
+import crypto from 'crypto';
+import bcrypt from 'bcrypt';
 
-const mongoUrl = process.env.MONGO_URL || "mongodb://localhost/project-final";
+const mongoUrl = process.env.MONGO_URL || 'mongodb://localhost/project-final';
 mongoose.connect(mongoUrl, { useNewUrlParser: true, useUnifiedTopology: true });
 mongoose.Promise = Promise;
 
@@ -18,48 +18,49 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const PlantSchema = new mongoose.Schema ({
+const PlantSchema = new mongoose.Schema({
   plantName: {
     type: String,
     required: true,
   },
   plantType: {
-    type: String
+    type: String,
+    enum: ['houseplant', 'tree', 'perennial', 'bush'],
   },
   indoorOrOutdoor: {
-    type: String
+    type: String,
   },
   image: {
-    type: String
+    type: String,
   },
   plantInformation: {
-    type: String
+    type: String,
   },
   createdAt: {
     type: Date,
-    default: Date.now
-  }
-})
+    default: Date.now,
+  },
+});
 
-const UserSchema = new mongoose.Schema ({
+const UserSchema = new mongoose.Schema({
   username: {
     type: String,
     unique: true,
-    required: true
+    required: true,
   },
   password: {
     type: String,
-    required: true
+    required: true,
   },
   accessToken: {
     type: String,
-    default: () => crypto.randomBytes(128).toString('hex')
+    default: () => crypto.randomBytes(128).toString('hex'),
   },
   email: {
     type: String,
-    required: true
-  }
-})
+    required: true,
+  },
+});
 
 const Plant = mongoose.model('Plant', PlantSchema);
 const User = mongoose.model('User', UserSchema);
@@ -88,13 +89,15 @@ const authenticateUser = async (req, res, next) => {
 
 app.get('/plants', authenticateUser);
 app.get('/plants', async (req, res) => {
-  const plants = await Plant.find().sort({createdAt: 'desc'}).limit(20).exec();
+  const plants = await Plant.find()
+    .sort({ createdAt: 'desc' })
+    .limit(20)
+    .exec();
   res.json(plants);
 });
 
 
 app.get('/plant/:plantId', async (req, res) => {
-
   const singlePlantId = req.params.plantId;
 
   const singlePlantById = await Plant.findById(singlePlantId);
@@ -109,77 +112,94 @@ app.get('/plant/:plantId', async (req, res) => {
   }
 });
 
-app.delete("/plant/:plantId", async (req, res) => { 
+app.delete('/plant/:plantId', async (req, res) => {
   const { plantId } = req.params;
   try {
-    const deleted = await Plant.findOneAndDelete({_id: plantId});
+    const deleted = await Plant.findOneAndDelete({ _id: plantId });
 
-    if(deleted) {
+    if (deleted) {
       res.status(200).json({
         success: true,
-        response: deleted
+        response: deleted,
       });
     } else {
       res.status(404).json({
         success: false,
-        response: "Not found"
+        response: 'Not found',
       });
     }
-
-  } catch(error) {
+  } catch (error) {
     res.status(400).json({
       success: false,
-      response: error
+      response: error,
     });
   }
 });
 
-app.patch("/plant/:plantId/updated", async (req, res) => {
+app.patch('/plant/:plantId/updated', async (req, res) => {
   const { plantId } = req.params;
   const { plantName, plantType, indoorOrOutdoor, plantInformation } = req.body;
-  console.log(req.params)
+  console.log(req.params);
 
   try {
-    const PlantToUpdate = await Plant.findByIdAndUpdate({_id: plantId}, {plantName, plantType, indoorOrOutdoor, plantInformation});
-    console.log(PlantToUpdate)
-    console.log(plantId)
+    const PlantToUpdate = await Plant.findByIdAndUpdate(
+      { _id: plantId },
+      { plantName, plantType, indoorOrOutdoor, plantInformation }
+    );
+    console.log(PlantToUpdate);
+    console.log(plantId);
     //console.log(updatedPlant)
-    if(PlantToUpdate) {
-      res.status(200).json
-        ({ response: {plantName, plantType, plantInformation, indoorOrOutdoor}, success: true});
+    if (PlantToUpdate) {
+      res.status(200).json({
+        response: { plantName, plantType, plantInformation, indoorOrOutdoor },
+        success: true,
+      });
     } else {
       res.status(404).json({
         success: false,
-        response: "Not found"
+        response: 'Not found',
       });
     }
-
-  } catch(error) {
+  } catch (error) {
     res.status(400).json({
       success: false,
-      response: error
+      response: error,
     });
   }
 });
 
 app.post('/plants', async (req, res) => {
-  const { plantName, plantType, indoorOrOutdoor, image, plantInformation, date } = req.body;
+  const {
+    plantName,
+    plantType,
+    indoorOrOutdoor,
+    image,
+    plantInformation,
+    date,
+  } = req.body;
   try {
-    const newPlant = new Plant({plantName, plantType, indoorOrOutdoor, image, plantInformation, date});
-      await newPlant.save();
-      res.status(201).json({
-        response: newPlant,
-        success: true
-      });
-    } catch(err) {
-      res.status(400).json({
-        response: err,
-        message: 'Could not save the Plant', 
-        errors: err.errors,
-        success: false,
-        status: 400
-      })
-    }
+    const newPlant = new Plant({
+      plantName,
+      plantType,
+      indoorOrOutdoor,
+      image,
+      plantInformation,
+      date,
+    });
+    await newPlant.save();
+    res.status(201).json({
+      response: newPlant,
+      success: true,
+    });
+  } catch (err) {
+    res.status(400).json({
+      response: err,
+      message: 'Could not save the Plant',
+      errors: err.errors,
+      success: false,
+      status: 400,
+    });
+  }
 });
 
 
@@ -249,8 +269,8 @@ app.post('/login', async (req, res) => {
 
 
 // Start defining your routes here
-app.get("/", (req, res) => {
-  res.send("Hello Technigo!");
+app.get('/', (req, res) => {
+  res.send('Hello Technigo!');
 });
 
 // Start the server
