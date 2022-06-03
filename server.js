@@ -51,7 +51,7 @@ const UserSchema = new mongoose.Schema ({
     type: String,
     required: true
   },
-  accesstoken: {
+  accessToken: {
     type: String,
     default: () => crypto.randomBytes(128).toString('hex')
   },
@@ -64,10 +64,34 @@ const UserSchema = new mongoose.Schema ({
 const Plant = mongoose.model('Plant', PlantSchema);
 const User = mongoose.model('User', UserSchema);
 
+
+
+const authenticateUser = async (req, res, next) => {
+  const accessToken = req.header('Authorization');
+  try {
+    const user = await User.findOne({accessToken: accessToken});
+    if (user) {
+      next();
+    } else {
+      res.status(401).json({
+        response: "Please log in",
+        success: false
+      });
+    }
+  } catch (error) {
+    res.status(400).json({
+      response: "Please log in",
+      success: false
+    });
+  }
+}
+
+app.get('/plants', authenticateUser);
 app.get('/plants', async (req, res) => {
   const plants = await Plant.find().sort({createdAt: 'desc'}).limit(20).exec();
   res.json(plants);
 });
+
 
 app.get('/plant/:plantId', async (req, res) => {
 
@@ -157,6 +181,72 @@ app.post('/plants', async (req, res) => {
       })
     }
 });
+
+
+app.post('/register', async (req, res) => {
+  const { username, password, email } = req.body;
+  try {
+    const salt = bcrypt.genSaltSync();
+    if (password.length < 8) {
+      res.status(400).json({
+        response: "Password is too short, must be at least 8 characters",
+        success: false
+      });
+    } else {
+      const newUser = await new User({
+        username: username,
+        password: bcrypt.hashSync(password, salt),
+        email: email
+      }).save(); 
+      res.status(201).json({
+        response: {
+          username:newUser.username,
+          accessToken: newUser.accessToken,
+          userId: newUser._id,
+          email: newUser.email
+        },
+        success: true
+      })
+    }
+  } catch (error) {
+    res.status(400).json({
+      response: 'Error registering',
+      success: false
+    })
+  }
+});
+
+
+app.post('/login', async (req, res) => {
+  const { username, password } = req.body;
+
+  try {
+    const user = await User.findOne({username});
+
+    if (user && bcrypt.compareSync(password, user.password)) {
+      res.status(200).json({
+        success: true,
+        userId: user._id,
+        username: user.username,
+        accessToken: user.accessToken
+      });
+    } else {
+      res.status(400).json({
+        response: "Username and password do not match",
+        sucess: false
+      })
+    }
+
+  } catch (error) {
+    res.status(400).json ({
+      response: 'Error logging in',
+      sucess: false,
+    });
+  }
+});
+
+
+
 
 // Start defining your routes here
 app.get("/", (req, res) => {
