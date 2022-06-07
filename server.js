@@ -40,6 +40,10 @@ const PlantSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  createdByUser: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User"
+  }
 });
 
 const UserSchema = new mongoose.Schema({
@@ -87,10 +91,12 @@ const authenticateUser = async (req, res, next) => {
 
 app.get('/plants', authenticateUser);
 app.get('/plants', async (req, res) => {
-  const plants = await Plant.find()
-    .sort({ createdAt: 'desc' })
-    .limit(20)
-    .exec();
+  const accessToken = req.header('Authorization');
+  const user = await User.findOne({ accessToken: accessToken });
+  const plants = await Plant.find({ createdByUser: user._id })
+  .sort({ createdAt: 'desc' })
+  .limit(20)
+  .exec();
   res.json({ success: true, response: plants });
 });
 
@@ -100,7 +106,7 @@ app.get('/plant/:plantId', async (req, res) => {
   const singlePlantById = await Plant.findById(singlePlantId);
 
   if (!singlePlantById) {
-    res.status(404).json("Sorry! Can't find a plant with that name.");
+    res.status(404).json('Sorry! Can not find a plant with that name.');
   } else {
     res.status(200).json({
       data: singlePlantById,
@@ -173,17 +179,20 @@ app.post('/plants', async (req, res) => {
     image,
     plantInformation,
     date,
+    userId
   } = req.body;
   try {
-    const newPlant = new Plant({
+    const queriedUser = await User.findById(userId);
+    const newPlant = await new Plant({
       plantName,
       plantType,
       indoorOrOutdoor,
       image,
       plantInformation,
       date,
-    });
-    await newPlant.save();
+      createdByUser: queriedUser,
+    }).save();
+    //await newPlant.save();
     res.status(201).json({
       response: newPlant,
       success: true,
@@ -198,6 +207,7 @@ app.post('/plants', async (req, res) => {
     });
   }
 });
+
 
 app.post('/register', async (req, res) => {
   const { username, password, email } = req.body;
