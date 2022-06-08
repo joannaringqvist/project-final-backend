@@ -92,10 +92,10 @@ const authenticateUser = async (req, res, next) => {
 app.get('/plants', authenticateUser);
 app.get('/plants', async (req, res) => {
   const accessToken = req.header('Authorization');
-  const user = await User.findOne({ accessToken: accessToken });
+  const user = await User.findOne({ accessToken: accessToken })
   const plants = await Plant.find({ createdByUser: user._id })
   .sort({ createdAt: 'desc' })
-  .limit(20)
+  .limit(100)
   .exec();
   res.json({ success: true, response: plants });
 });
@@ -142,7 +142,7 @@ app.delete('/plant/:plantId', async (req, res) => {
 app.patch('/plant/:plantId/updated', async (req, res) => {
   const { plantId } = req.params;
   const { plantName, plantType, indoorOrOutdoor, plantInformation } = req.body;
-  console.log(req.params);
+  console.log('updates reqps', req.params);
 
   try {
     const PlantToUpdate = await Plant.findByIdAndUpdate(
@@ -166,23 +166,24 @@ app.patch('/plant/:plantId/updated', async (req, res) => {
   } catch (error) {
     res.status(400).json({
       success: false,
-      response: error,
+      response: 'error',
     });
   }
 });
 
+app.post('/plants', authenticateUser);
 app.post('/plants', async (req, res) => {
+  const accessToken = req.header('Authorization');
+  const user = await User.findOne({ accessToken: accessToken });
   const {
     plantName,
     plantType,
     indoorOrOutdoor,
     image,
     plantInformation,
-    date,
-    userId
+    date
   } = req.body;
   try {
-    const queriedUser = await User.findById(userId);
     const newPlant = await new Plant({
       plantName,
       plantType,
@@ -190,7 +191,7 @@ app.post('/plants', async (req, res) => {
       image,
       plantInformation,
       date,
-      createdByUser: queriedUser,
+      createdByUser: user,
     }).save();
     //await newPlant.save();
     res.status(201).json({
