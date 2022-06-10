@@ -40,6 +40,10 @@ const PlantSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  createdByUser: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User"
+  }
 });
 
 const EventSchema = new mongoose.Schema({
@@ -109,10 +113,12 @@ const authenticateUser = async (req, res, next) => {
 
 app.get('/plants', authenticateUser);
 app.get('/plants', async (req, res) => {
-  const plants = await Plant.find()
-    .sort({ createdAt: 'desc' })
-    .limit(20)
-    .exec();
+  const accessToken = req.header('Authorization');
+  const user = await User.findOne({ accessToken: accessToken })
+  const plants = await Plant.find({ createdByUser: user._id })
+  .sort({ createdAt: 'desc' })
+  .limit(100)
+  .exec();
   res.json({ success: true, response: plants });
 });
 
@@ -131,7 +137,7 @@ app.get('/plant/:plantId', async (req, res) => {
   const singlePlantById = await Plant.findById(singlePlantId);
 
   if (!singlePlantById) {
-    res.status(404).json("Sorry! Can't find a plant with that name.");
+    res.status(404).json('Sorry! Can not find a plant with that name.');
   } else {
     res.status(200).json({
       data: singlePlantById,
@@ -191,7 +197,7 @@ app.delete('/event/:eventId', async (req, res) => {
 app.patch('/plant/:plantId/updated', async (req, res) => {
   const { plantId } = req.params;
   const { plantName, plantType, indoorOrOutdoor, plantInformation } = req.body;
-  console.log(req.params);
+  console.log('updates reqps', req.params);
 
   try {
     const PlantToUpdate = await Plant.findByIdAndUpdate(
@@ -215,30 +221,34 @@ app.patch('/plant/:plantId/updated', async (req, res) => {
   } catch (error) {
     res.status(400).json({
       success: false,
-      response: error,
+      response: 'error',
     });
   }
 });
 
+app.post('/plants', authenticateUser);
 app.post('/plants', async (req, res) => {
+  const accessToken = req.header('Authorization');
+  const user = await User.findOne({ accessToken: accessToken });
   const {
     plantName,
     plantType,
     indoorOrOutdoor,
     image,
     plantInformation,
-    date,
+    date
   } = req.body;
   try {
-    const newPlant = new Plant({
+    const newPlant = await new Plant({
       plantName,
       plantType,
       indoorOrOutdoor,
       image,
       plantInformation,
       date,
-    });
-    await newPlant.save();
+      createdByUser: user,
+    }).save();
+    //await newPlant.save();
     res.status(201).json({
       response: newPlant,
       success: true,
@@ -254,6 +264,7 @@ app.post('/plants', async (req, res) => {
   }
 });
 
+<<<<<<< HEAD
 app.post('/calendarevents', async (req, res) => {
   const { eventTitle, startDate } = req.body;
   try {
@@ -292,6 +303,8 @@ app.patch('/calendarevents/:eventId/completed', async (req, res) => {
     res.status(400).json({ response: error, success: false });
   }
 });
+=======
+>>>>>>> 49f5f9afaf765106e8f6322cb3d691a88c0d8a8a
 
 app.post('/register', async (req, res) => {
   const { username, password, email } = req.body;
