@@ -42,6 +42,27 @@ const PlantSchema = new mongoose.Schema({
   },
 });
 
+const EventSchema = new mongoose.Schema({
+  eventTitle: {
+    type: String,
+    required: true,
+  },
+  startDate: {
+    type: Object,
+  },
+  endData: {
+    type: Date,
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
+  isCompleted: {
+    type: Boolean,
+    default: false,
+  },
+});
+
 const UserSchema = new mongoose.Schema({
   username: {
     type: String,
@@ -64,6 +85,7 @@ const UserSchema = new mongoose.Schema({
 
 const Plant = mongoose.model('Plant', PlantSchema);
 const User = mongoose.model('User', UserSchema);
+const Event = mongoose.model('Event', EventSchema);
 
 const authenticateUser = async (req, res, next) => {
   const accessToken = req.header('Authorization');
@@ -94,6 +116,15 @@ app.get('/plants', async (req, res) => {
   res.json({ success: true, response: plants });
 });
 
+app.get('/calendarevents');
+app.get('/calendarevents', async (req, res) => {
+  const events = await Event.find()
+    .sort({ createdAt: 'desc' })
+    .limit(20)
+    .exec();
+  res.json({ success: true, response: events });
+});
+
 app.get('/plant/:plantId', async (req, res) => {
   const singlePlantId = req.params.plantId;
 
@@ -113,6 +144,30 @@ app.delete('/plant/:plantId', async (req, res) => {
   const { plantId } = req.params;
   try {
     const deleted = await Plant.findOneAndDelete({ _id: plantId });
+
+    if (deleted) {
+      res.status(200).json({
+        success: true,
+        response: deleted,
+      });
+    } else {
+      res.status(404).json({
+        success: false,
+        response: 'Not found',
+      });
+    }
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      response: error,
+    });
+  }
+});
+
+app.delete('/event/:eventId', async (req, res) => {
+  const { eventId } = req.params;
+  try {
+    const deleted = await Event.findOneAndDelete({ _id: eventId });
 
     if (deleted) {
       res.status(200).json({
@@ -196,6 +251,45 @@ app.post('/plants', async (req, res) => {
       success: false,
       status: 400,
     });
+  }
+});
+
+app.post('/calendarevents', async (req, res) => {
+  const { eventTitle, startDate } = req.body;
+  try {
+    const newEvent = new Event({
+      eventTitle,
+      startDate,
+    });
+    await newEvent.save();
+    res.status(201).json({
+      response: newEvent,
+      success: true,
+    });
+  } catch (err) {
+    res.status(400).json({
+      response: err,
+      message: 'Could not save this event',
+      errors: err.errors,
+      success: false,
+      status: 400,
+    });
+  }
+});
+
+app.patch('/calendarevents/:eventId/completed', async (req, res) => {
+  const { eventId } = req.params;
+  const { isCompleted } = req.body;
+
+  try {
+    const updateIsCompleted = await Event.findOneAndUpdate(
+      { _id: eventId },
+      { isCompleted },
+      { new: true }
+    );
+    res.status(200).json({ response: updateIsCompleted, success: true });
+  } catch (error) {
+    res.status(400).json({ response: error, success: false });
   }
 });
 
