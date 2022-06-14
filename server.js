@@ -65,6 +65,10 @@ const EventSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  createdByUser: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User"
+  }
 });
 
 const UserSchema = new mongoose.Schema({
@@ -122,9 +126,11 @@ app.get('/plants', async (req, res) => {
   res.json({ success: true, response: plants });
 });
 
-app.get('/calendarevents');
+app.get('/calendarevents', authenticateUser);
 app.get('/calendarevents', async (req, res) => {
-  const events = await Event.find()
+  const accessToken = req.header('Authorization');
+  const user = await User.findOne({ accessToken: accessToken })
+  const events = await Event.find({ createdByUser: user._id })
     .sort({ createdAt: 'desc' })
     .limit(20)
     .exec();
@@ -263,12 +269,17 @@ app.post('/plants', async (req, res) => {
   }
 });
 
+app.post('/calendarevents', authenticateUser);
 app.post('/calendarevents', async (req, res) => {
+  const accessToken = req.header('Authorization');
+  const user = await User.findOne({ accessToken: accessToken });
+
   const { eventTitle, startDate } = req.body;
   try {
     const newEvent = new Event({
       eventTitle,
       startDate,
+      createdByUser: user
     });
     await newEvent.save();
     res.status(201).json({
