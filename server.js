@@ -206,10 +206,9 @@ app.patch('/plant/:plantId/updated', async (req, res) => {
     );
     console.log(PlantToUpdate);
     console.log(plantId);
-    //console.log(updatedPlant)
     if (PlantToUpdate) {
       res.status(200).json({
-        response: { plantName, plantType, plantInformation, indoorOrOutdoor },
+        response: PlantToUpdate,
         success: true,
       });
     } else {
@@ -264,7 +263,6 @@ app.post('/plants', async (req, res) => {
   }
 });
 
-<<<<<<< HEAD
 app.post('/calendarevents', async (req, res) => {
   const { eventTitle, startDate } = req.body;
   try {
@@ -303,8 +301,6 @@ app.patch('/calendarevents/:eventId/completed', async (req, res) => {
     res.status(400).json({ response: error, success: false });
   }
 });
-=======
->>>>>>> 49f5f9afaf765106e8f6322cb3d691a88c0d8a8a
 
 app.post('/register', async (req, res) => {
   const { username, password, email } = req.body;
