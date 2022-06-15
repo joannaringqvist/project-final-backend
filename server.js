@@ -3,6 +3,7 @@ import cors from 'cors';
 import mongoose from 'mongoose';
 import crypto from 'crypto';
 import bcrypt from 'bcrypt';
+import { stringify } from 'querystring';
 
 const mongoUrl = process.env.MONGO_URL || 'mongodb://localhost/project-final';
 mongoose.connect(mongoUrl, { useNewUrlParser: true, useUnifiedTopology: true });
@@ -40,13 +41,22 @@ const PlantSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  isFavourite: {
+    type: Boolean,
+    default: false,
+  },
   createdByUser: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "User"
-  }
+    ref: 'User',
+  },
 });
 
 const EventSchema = new mongoose.Schema({
+  newEvent: {
+    title: String,
+    start: String,
+    end: String,
+  },
   eventTitle: {
     type: String,
     required: true,
@@ -114,11 +124,11 @@ const authenticateUser = async (req, res, next) => {
 app.get('/plants', authenticateUser);
 app.get('/plants', async (req, res) => {
   const accessToken = req.header('Authorization');
-  const user = await User.findOne({ accessToken: accessToken })
+  const user = await User.findOne({ accessToken: accessToken });
   const plants = await Plant.find({ createdByUser: user._id })
-  .sort({ createdAt: 'desc' })
-  .limit(100)
-  .exec();
+    .sort({ createdAt: 'desc' })
+    .limit(100)
+    .exec();
   res.json({ success: true, response: plants });
 });
 
@@ -236,7 +246,7 @@ app.post('/plants', async (req, res) => {
     indoorOrOutdoor,
     image,
     plantInformation,
-    date
+    date,
   } = req.body;
   try {
     const newPlant = await new Plant({
@@ -264,13 +274,13 @@ app.post('/plants', async (req, res) => {
   }
 });
 
-<<<<<<< HEAD
 app.post('/calendarevents', async (req, res) => {
   const { eventTitle, startDate } = req.body;
   try {
     const newEvent = new Event({
-      eventTitle,
-      startDate,
+      eventTitle: req.body.newEvent.title,
+      startDate: req.body.newEvent.start,
+      endDate: req.body.newEvent.end,
     });
     await newEvent.save();
     res.status(201).json({
@@ -303,8 +313,22 @@ app.patch('/calendarevents/:eventId/completed', async (req, res) => {
     res.status(400).json({ response: error, success: false });
   }
 });
-=======
->>>>>>> 49f5f9afaf765106e8f6322cb3d691a88c0d8a8a
+
+app.patch('/plants/:plantId/favourite', async (req, res) => {
+  const { plantId } = req.params;
+  const { isFavourite } = req.body;
+
+  try {
+    const favouriteIsCompleted = await Plant.findOneAndUpdate(
+      { _id: plantId },
+      { isFavourite },
+      { new: true }
+    );
+    res.status(200).json({ response: favouriteIsCompleted, success: true });
+  } catch (error) {
+    res.status(400).json({ response: error, success: false });
+  }
+});
 
 app.post('/register', async (req, res) => {
   const { username, password, email } = req.body;
