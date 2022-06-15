@@ -75,6 +75,10 @@ const EventSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  createdByUser: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User"
+  }
 });
 
 const UserSchema = new mongoose.Schema({
@@ -132,9 +136,11 @@ app.get('/plants', async (req, res) => {
   res.json({ success: true, response: plants });
 });
 
-app.get('/calendarevents');
+app.get('/calendarevents', authenticateUser);
 app.get('/calendarevents', async (req, res) => {
-  const events = await Event.find()
+  const accessToken = req.header('Authorization');
+  const user = await User.findOne({ accessToken: accessToken })
+  const events = await Event.find({ createdByUser: user._id })
     .sort({ createdAt: 'desc' })
     .limit(20)
     .exec();
@@ -216,10 +222,9 @@ app.patch('/plant/:plantId/updated', async (req, res) => {
     );
     console.log(PlantToUpdate);
     console.log(plantId);
-    //console.log(updatedPlant)
     if (PlantToUpdate) {
       res.status(200).json({
-        response: { plantName, plantType, plantInformation, indoorOrOutdoor },
+        response: PlantToUpdate,
         success: true,
       });
     } else {
@@ -274,13 +279,26 @@ app.post('/plants', async (req, res) => {
   }
 });
 
+<<<<<<< HEAD
+=======
+app.post('/calendarevents', authenticateUser);
+>>>>>>> a8948241b5b7c305c417d137d06f910d02e94ee8
 app.post('/calendarevents', async (req, res) => {
+  const accessToken = req.header('Authorization');
+  const user = await User.findOne({ accessToken: accessToken });
+
   const { eventTitle, startDate } = req.body;
   try {
     const newEvent = new Event({
+<<<<<<< HEAD
       eventTitle: req.body.newEvent.title,
       startDate: req.body.newEvent.start,
       endDate: req.body.newEvent.end,
+=======
+      eventTitle,
+      startDate,
+      createdByUser: user
+>>>>>>> a8948241b5b7c305c417d137d06f910d02e94ee8
     });
     await newEvent.save();
     res.status(201).json({
@@ -313,6 +331,7 @@ app.patch('/calendarevents/:eventId/completed', async (req, res) => {
     res.status(400).json({ response: error, success: false });
   }
 });
+<<<<<<< HEAD
 
 app.patch('/plants/:plantId/favourite', async (req, res) => {
   const { plantId } = req.params;
@@ -329,6 +348,8 @@ app.patch('/plants/:plantId/favourite', async (req, res) => {
     res.status(400).json({ response: error, success: false });
   }
 });
+=======
+>>>>>>> a8948241b5b7c305c417d137d06f910d02e94ee8
 
 app.post('/register', async (req, res) => {
   const { username, password, email } = req.body;
