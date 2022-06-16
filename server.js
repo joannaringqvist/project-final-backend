@@ -279,26 +279,18 @@ app.post('/plants', async (req, res) => {
   }
 });
 
-<<<<<<< HEAD
-=======
 app.post('/calendarevents', authenticateUser);
->>>>>>> a8948241b5b7c305c417d137d06f910d02e94ee8
 app.post('/calendarevents', async (req, res) => {
   const accessToken = req.header('Authorization');
   const user = await User.findOne({ accessToken: accessToken });
 
-  const { eventTitle, startDate } = req.body;
+  const { eventTitle, startDate, endDate } = req.body;
   try {
     const newEvent = new Event({
-<<<<<<< HEAD
       eventTitle: req.body.newEvent.title,
       startDate: req.body.newEvent.start,
       endDate: req.body.newEvent.end,
-=======
-      eventTitle,
-      startDate,
       createdByUser: user
->>>>>>> a8948241b5b7c305c417d137d06f910d02e94ee8
     });
     await newEvent.save();
     res.status(201).json({
@@ -331,7 +323,6 @@ app.patch('/calendarevents/:eventId/completed', async (req, res) => {
     res.status(400).json({ response: error, success: false });
   }
 });
-<<<<<<< HEAD
 
 app.patch('/plants/:plantId/favourite', async (req, res) => {
   const { plantId } = req.params;
@@ -348,8 +339,7 @@ app.patch('/plants/:plantId/favourite', async (req, res) => {
     res.status(400).json({ response: error, success: false });
   }
 });
-=======
->>>>>>> a8948241b5b7c305c417d137d06f910d02e94ee8
+
 
 app.post('/register', async (req, res) => {
   const { username, password, email } = req.body;
