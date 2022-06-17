@@ -64,8 +64,8 @@ const EventSchema = new mongoose.Schema({
   startDate: {
     type: Object,
   },
-  endData: {
-    type: Date,
+  endDate: {
+    type: Object,
   },
   createdAt: {
     type: Date,
@@ -77,8 +77,8 @@ const EventSchema = new mongoose.Schema({
   },
   createdByUser: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "User"
-  }
+    ref: 'User',
+  },
 });
 
 const UserSchema = new mongoose.Schema({
@@ -139,7 +139,7 @@ app.get('/plants', async (req, res) => {
 app.get('/calendarevents', authenticateUser);
 app.get('/calendarevents', async (req, res) => {
   const accessToken = req.header('Authorization');
-  const user = await User.findOne({ accessToken: accessToken })
+  const user = await User.findOne({ accessToken: accessToken });
   const events = await Event.find({ createdByUser: user._id })
     .sort({ createdAt: 'desc' })
     .limit(20)
@@ -290,7 +290,7 @@ app.post('/calendarevents', async (req, res) => {
       eventTitle: req.body.newEvent.title,
       startDate: req.body.newEvent.start,
       endDate: req.body.newEvent.end,
-      createdByUser: user
+      createdByUser: user,
     });
     await newEvent.save();
     res.status(201).json({
@@ -339,7 +339,6 @@ app.patch('/plants/:plantId/favourite', async (req, res) => {
     res.status(400).json({ response: error, success: false });
   }
 });
-
 
 app.post('/register', async (req, res) => {
   const { username, password, email } = req.body;
