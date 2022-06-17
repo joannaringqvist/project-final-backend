@@ -31,7 +31,7 @@ const PlantSchema = new mongoose.Schema({
   indoorOrOutdoor: {
     type: String,
   },
-  image: {
+  imageUrl: {
     type: String,
   },
   plantInformation: {
@@ -249,7 +249,7 @@ app.post('/plants', async (req, res) => {
     plantName,
     plantType,
     indoorOrOutdoor,
-    image,
+    imageUrl,
     plantInformation,
     date,
   } = req.body;
@@ -258,7 +258,7 @@ app.post('/plants', async (req, res) => {
       plantName,
       plantType,
       indoorOrOutdoor,
-      image,
+      imageUrl,
       plantInformation,
       date,
       createdByUser: user,
