@@ -212,13 +212,13 @@ app.delete('/event/:eventId', async (req, res) => {
 
 app.patch('/plant/:plantId/updated', async (req, res) => {
   const { plantId } = req.params;
-  const { plantName, plantType, indoorOrOutdoor, plantInformation } = req.body;
+  const { plantName, plantType, indoorOrOutdoor, plantInformation, imageUrl } = req.body;
   console.log('updates reqps', req.params);
 
   try {
     const PlantToUpdate = await Plant.findByIdAndUpdate(
       { _id: plantId },
-      { plantName, plantType, indoorOrOutdoor, plantInformation }
+      { plantName, plantType, indoorOrOutdoor, plantInformation, imageUrl }
     );
     console.log(PlantToUpdate);
     console.log(plantId);
