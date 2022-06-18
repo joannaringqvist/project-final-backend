@@ -218,7 +218,8 @@ app.patch('/plant/:plantId/updated', async (req, res) => {
   try {
     const PlantToUpdate = await Plant.findByIdAndUpdate(
       { _id: plantId },
-      { plantName, plantType, indoorOrOutdoor, plantInformation, imageUrl }
+      { plantName, plantType, indoorOrOutdoor, plantInformation, imageUrl },
+      { new: true }
     );
     console.log(PlantToUpdate);
     console.log(plantId);
