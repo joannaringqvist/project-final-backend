@@ -34,6 +34,9 @@ const PlantSchema = new mongoose.Schema({
   imageUrl: {
     type: String,
   },
+  thumbnailUrl: {
+    type: String,
+  },
   plantInformation: {
     type: String,
   },
@@ -165,7 +168,7 @@ app.get('/plant/:plantId', async (req, res) => {
 app.delete('/plant/:plantId', async (req, res) => {
   const { plantId } = req.params;
   try {
-    const deleted = await Plant.findOneAndDelete({ _id: plantId });
+    const deleted = await Plant.findOneAndDelete({ _id: plantId }, {new: true});
 
     if (deleted) {
       res.status(200).json({
@@ -212,13 +215,12 @@ app.delete('/event/:eventId', async (req, res) => {
 
 app.patch('/plant/:plantId/updated', async (req, res) => {
   const { plantId } = req.params;
-  const { plantName, plantType, indoorOrOutdoor, plantInformation, imageUrl } = req.body;
-  console.log('updates reqps', req.params);
+  const { plantName, plantType, indoorOrOutdoor, plantInformation, imageUrl, thumbnailUrl } = req.body;
 
   try {
     const PlantToUpdate = await Plant.findByIdAndUpdate(
       { _id: plantId },
-      { plantName, plantType, indoorOrOutdoor, plantInformation, imageUrl },
+      { plantName, plantType, indoorOrOutdoor, plantInformation, imageUrl, thumbnailUrl },
       { new: true }
     );
     console.log(PlantToUpdate);
@@ -251,6 +253,7 @@ app.post('/plants', async (req, res) => {
     plantType,
     indoorOrOutdoor,
     imageUrl,
+    thumbnailUrl,
     plantInformation,
     date,
   } = req.body;
@@ -260,6 +263,7 @@ app.post('/plants', async (req, res) => {
       plantType,
       indoorOrOutdoor,
       imageUrl,
+      thumbnailUrl,
       plantInformation,
       date,
       createdByUser: user,
