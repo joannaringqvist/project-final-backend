@@ -26,15 +26,12 @@ const PlantSchema = new mongoose.Schema({
   },
   plantType: {
     type: String,
-    enum: ['houseplant', 'tree', 'perennial', 'bush'],
+    enum: ['houseplant', 'tree', 'perennial', 'bush', 'vegetable', 'other'],
   },
   indoorOrOutdoor: {
     type: String,
   },
   imageUrl: {
-    type: String,
-  },
-  thumbnailUrl: {
     type: String,
   },
   plantInformation: {
@@ -215,12 +212,12 @@ app.delete('/event/:eventId', async (req, res) => {
 
 app.patch('/plant/:plantId/updated', async (req, res) => {
   const { plantId } = req.params;
-  const { plantName, plantType, indoorOrOutdoor, plantInformation, imageUrl, thumbnailUrl } = req.body;
+  const { plantName, plantType, plantInformation, imageUrl } = req.body;
 
   try {
     const PlantToUpdate = await Plant.findByIdAndUpdate(
       { _id: plantId },
-      { plantName, plantType, indoorOrOutdoor, plantInformation, imageUrl, thumbnailUrl },
+      { plantName, plantType, plantInformation, imageUrl },
       { new: true }
     );
     console.log(PlantToUpdate);
@@ -251,9 +248,7 @@ app.post('/plants', async (req, res) => {
   const {
     plantName,
     plantType,
-    indoorOrOutdoor,
     imageUrl,
-    thumbnailUrl,
     plantInformation,
     date,
   } = req.body;
@@ -261,9 +256,7 @@ app.post('/plants', async (req, res) => {
     const newPlant = await new Plant({
       plantName,
       plantType,
-      indoorOrOutdoor,
       imageUrl,
-      thumbnailUrl,
       plantInformation,
       date,
       createdByUser: user,
